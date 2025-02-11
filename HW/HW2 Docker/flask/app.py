@@ -1,4 +1,4 @@
-from flask import Flask, request, make_response
+from flask import Flask, request, make_response, jsonify 
 import os 
 
 app = Flask(__name__)
@@ -25,6 +25,15 @@ def repeat():
         }
     )
     return response
+
+@app.route('/health')
+@app.route('/healthcheck')
+def health():
+    response = {
+        "body": "OK",
+        "status": 200,
+    }
+    return jsonify(response)
 
 
 if __name__ == '__main__':
