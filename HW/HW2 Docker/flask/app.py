@@ -1,6 +1,9 @@
-from flask import Flask, make_response
+from flask import Flask, request, make_response, jsonify 
+import os 
 
 app = Flask(__name__)
+
+PORT = int(os.getenv("PORT", 5000))
 
 @app.route('/')
 def hello():
@@ -12,8 +15,9 @@ def hello():
     )
     return response
 
-if __name__ == '__main__':
-    # By default flask is only accessible from localhost.
-    # Set this to '0.0.0.0' to make it accessible from any IP address
-    # on your network (not recommended for production use)
-    app.run(host='0.0.0.0', debug=True)
+@app.route('/repeat', methods=['GET'])
+def repeat():
+    user_input = request.args.get("input", "No input provided") 
+    response = make_response(
+        {
+            'body': user_inpu
