@@ -101,8 +101,26 @@ class Boxers(db.Model):
         else:
             return "Heavyweight"
         
-    @classmethod
 
+    def validate(self) -> None:
+        """Validates the song instance before committing to the database.
+
+        Raises:
+            ValueError: If any required fields are invalid.
+        """
+        if not self.artist or not isinstance(self.artist, str):
+            raise ValueError("Artist must be a non-empty string.")
+        if not self.title or not isinstance(self.title, str):
+            raise ValueError("Title must be a non-empty string.")
+        if not isinstance(self.year, int) or self.year <= 1900:
+            raise ValueError("Year must be an integer greater than 1900.")
+        if not self.genre or not isinstance(self.genre, str):
+            raise ValueError("Genre must be a non-empty string.")
+        if not isinstance(self.duration, int) or self.duration <= 0:
+            raise ValueError("Duration must be a positive integer.")
+
+
+    @classmethod
 
     ##STILL HAVE TO IMPLEMENT
     def create_boxer(cls, name: str, weight: float, height: float, reach: float, age: int) -> None:
@@ -121,7 +139,8 @@ class Boxers(db.Model):
             SQLAlchemyError: If there is a database error during creation.
 
         """
-        logger.info(f"Creating boxer: {name}, {weight=} {height=} {reach=} {age=}")
+
+        ''' ORIGINAL 
 
         try:
             logger.info(f"Boxer created successfully: {name}")
@@ -130,6 +149,46 @@ class Boxers(db.Model):
         except SQLAlchemyError as e:
             db.session.rollback()
             logger.error(f"Database error during creation: {e}")
+        '''
+        logger.info(f"Creating boxer: {name}, {weight=} {height=} {reach=} {age=}")
+
+        try:
+            boxer = Boxer(
+                name=name.strip(),
+                weight=weight,
+                height=height,
+                reach=reach,
+                age=age
+            )
+
+            boxer.validate()
+        
+        except ValueError as e:
+            logger.warning(f"Validation failed: {e}")
+            raise
+
+        try:
+            existing = Boxer.query.filter_by(name=name.strip()).first()
+            if existing:
+                logger.error(f"Boxer already exists: {name}")
+                raise ValueError(f"Boxer with name '{name}' already exists.")
+
+            db.session.add(boxer)
+            db.session.commit()
+            logger.info(f"Boxer created successfully: {name}")
+
+        except IntegrityError:
+            logger.error(f"Integrity error: Boxer with name '{name}' already exists.")
+            db.session.rollback()
+            raise ValueError(f"Boxer with name '{name}' already exists.")
+
+        except SQLAlchemyError as e:
+            logger.error(f"Database error during creating boxer '{name}': {e}")
+            db.session.rollback()
+            raise
+
+
+
 
     @classmethod
 
@@ -198,14 +257,21 @@ class Boxers(db.Model):
             ValueError: If the boxer with the given ID does not exist.
 
         """
-        boxer = cls.get_boxer_by_id(boxer_id)
-        if boxer is None:
-            logger.info(f"Boxer with ID {boxer_id} not found.")
-            raise ValueError(f"Boxer with ID {boxer_id} not found.")
-        db.session.delete(boxer)
-        db.session.commit()
-        logger.info(f"Boxer with ID {boxer_id} permanently deleted.")
+        try: 
+            boxer = cls.get_boxer_by_id(boxer_id)
+            if boxer is None:
+                logger.info(f"Boxer with ID {boxer_id} not found.")
+                raise ValueError(f"Boxer with ID {boxer_id} not found.")
+            db.session.delete(boxer)
+            db.session.commit()
+            logger.info(f"Boxer with ID {boxer_id} permanently deleted.")
 
+        except SQLAlchemyError as e:
+            logger.error(f"Database error while deleting boxer with ID {boxer_id}: {e}")
+            db.session.rollback()
+            raise
+
+    
     def update_stats(self, result: str) -> None:
         """Update the boxer's fight and win count based on result.
 
