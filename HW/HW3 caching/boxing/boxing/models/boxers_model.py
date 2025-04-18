@@ -49,6 +49,14 @@ class Boxers(db.Model):
             - Fight statistics (`fights` and `wins`) are initialized to 0 by default in the database schema.
 
         """
+
+        if weight < 125:
+            raise ValueError("Weight must be at least 125 pounds.")
+        if height <= 0 or reach <= 0:
+            raise ValueError("Height and reach must be greater than 0.")
+        if not (18 <= age <= 40):
+            raise ValueError("Age must be between 18 and 40.")
+        
         self.name = name
         self.weight = weight
         self.height = height
@@ -82,11 +90,21 @@ class Boxers(db.Model):
             ValueError: If the weight is less than 125.
 
         """
-        pass
 
+        if weight < 125:
+            raise ValueError("Weight must be at least 125 pounds.")
+
+        if weight <= 135:
+            return "Lightweight"
+        elif weight <= 160:
+            return "Middleweight"
+        else:
+            return "Heavyweight"
+        
     @classmethod
 
 
+    ##STILL HAVE TO IMPLEMENT
     def create_boxer(cls, name: str, weight: float, height: float, reach: float, age: int) -> None:
         """Create and persist a new Boxer instance.
 
@@ -115,7 +133,6 @@ class Boxers(db.Model):
 
     @classmethod
 
-     #Implement 
 
     def get_boxer_by_id(cls, boxer_id: int) -> "Boxers":
         """Retrieve a boxer by ID.
@@ -130,15 +147,21 @@ class Boxers(db.Model):
             ValueError: If the boxer with the given ID does not exist.
 
         """
-        if boxer is None:
-            logger.info(f"Boxer with ID {boxer_id} not found.")
-        pass
 
+        logger.info(f" Trying to retrieve boxer with ID: {boxer_id}")
+        try: 
+            boxer = cls.query.get(boxer_id)
+            if boxer is None:
+                logger.info(f"Boxer with ID {boxer_id} not found.")
+                raise ValueError(f"Boxer with ID {boxer_id} not found.")
+            return boxer
+        
+        except SQLAlchemyError as e:
+            logger.error(f"Database error while retrieving boxer by ID {boxer_id}: {e}")
+            raise
+    
     @classmethod
 
-     #Implement 
-
-     
     def get_boxer_by_name(cls, name: str) -> "Boxers":
         """Retrieve a boxer by name.
 
@@ -152,10 +175,18 @@ class Boxers(db.Model):
             ValueError: If the boxer with the given name does not exist.
 
         """
-        if boxer is None:
-            logger.info(f"Boxer '{name}' not found.")
-        pass
 
+        try: 
+            boxer = cls.query.filter_by(name=name).first()
+            if boxer is None:
+                logger.info(f"Boxer '{name}' not found.")
+                raise ValueError(f"Boxer '{name}' not found.")
+            return boxer
+        
+        except SQLAlchemyError as e:
+            logger.error(f"Database error while retrieving boxer by name '{name}': {e}")
+            raise
+        
     @classmethod
     def delete(cls, boxer_id: int) -> None:
         """Delete a boxer by ID.
