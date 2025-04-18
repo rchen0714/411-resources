@@ -34,7 +34,7 @@ class RingModel:
         self.ring: List[int] = []
         self._boxer_cache: dict[int,Boxers] = {}
         self._ttl: dict[int,float] = {}
-        self.ttl_seconds: int= int(os.getenv("TTL_SECONDS", 60))
+        self.ttl_seconds = int(os.getenv("TTL", 60))
 
     def fight(self) -> str:
         """Simulates a fight between two combatants.
@@ -146,28 +146,23 @@ class RingModel:
         else:
             logger.info(f"Retrieving {len(self.ring)} boxers from the ring.")
 
-        boxers: List[Boxers] =[]
-
-        for boxer_id in self.ring:
-            ttl= self._ttl.get(boxer_id)
-            expired = not ttl or (time.time() - ttl > self.ttl_seconds)
-
-
-
-            if expired:
-                logger.info(f"TTL expired or missing for boxer {boxer_id}. Refreshing from DB.")
-                boxer = Boxers.get_boxer_by_id(boxer_id)
-                self._boxer_cache[boxer_id]= boxer
-                self._ttl[boxer.id] = time.time()
-
-            else:
-                logger.debug(f"Using cached boxer {boxer_id} (TTL valid).")
-                boxer= self._boxer_cache[boxer_id]
-
-            boxers.append(boxer)
+        boxers = [self._get_boxer_from_cache_or_db(boxer_id) for boxer_id in self.ring]
 
         logger.info(f"Retrieved {len(boxers)} boxers from the ring.")
         return boxers
+
+    def _get_boxer_from_cache_or_db(self, boxer_id: int) -> Boxers:
+    now = time.time()
+    if boxer_id in self._boxer_cache and self._ttl.get(boxer_id, 0) > now:
+        logger.debug(f"Boxer ID {boxer_id} retrieved from cache")
+        return self._boxer_cache[boxer_id]
+
+    boxer = Boxers.get_boxer_by_id(boxer_id)
+    logger.info(f"Boxer ID {boxer_id} loaded from DB")
+    self._boxer_cache[boxer_id] = boxer
+    self._ttl[boxer_id] = now + self.ttl_seconds
+    return boxer
+
 
     def get_fighting_skill(self, boxer: Boxers) -> float:
         """Calculates the fighting skill for a boxer based on arbitrary rules.
