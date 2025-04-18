@@ -15,7 +15,12 @@ configure_logger(logger)
 
 class Users():
 
+     #Implement 
+
     @staticmethod
+
+     #Implement 
+
     def _generate_hashed_password(password: str) -> tuple[str, str]:
         """
         Generates a salted, hashed password.
@@ -29,6 +34,9 @@ class Users():
         pass
 
     @classmethod
+
+     #Implement 
+
     def create_user(cls, username: str, password: str) -> None:
         """
         Create a new user with a salted, hashed password.
@@ -48,6 +56,10 @@ class Users():
             logger.error("Database error: %s", str(e))
 
     @classmethod
+
+     #Implement 
+
+
     def check_password(cls, username: str, password: str) -> bool:
         """
         Check if a given password matches the stored password for a user.
@@ -67,6 +79,10 @@ class Users():
         pass
 
     @classmethod
+
+     #Implement 
+
+
     def delete_user(cls, username: str) -> None:
         """
         Delete a user from the database.
@@ -81,6 +97,8 @@ class Users():
             logger.info("User %s not found", username)
         logger.info("User %s deleted successfully", username)
 
+     #Implement 
+
     def get_id(self) -> str:
         """
         Get the ID of the user.
@@ -91,6 +109,9 @@ class Users():
         pass
 
     @classmethod
+
+     #Implement 
+
     def get_id_by_username(cls, username: str) -> int:
         """
         Retrieve the ID of a user by username.
@@ -109,6 +130,9 @@ class Users():
         pass
 
     @classmethod
+
+     #Implement 
+     
     def update_password(cls, username: str, new_password: str) -> None:
         """
         Update the password for a user.

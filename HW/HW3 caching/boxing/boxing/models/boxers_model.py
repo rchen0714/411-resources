@@ -60,6 +60,9 @@ class Boxers(db.Model):
         self.wins = 0
 
     @classmethod
+
+    #Implement 
+
     def get_weight_class(cls, weight: float) -> str:
         """Determine the weight class based on weight.
 
@@ -82,6 +85,8 @@ class Boxers(db.Model):
         pass
 
     @classmethod
+
+
     def create_boxer(cls, name: str, weight: float, height: float, reach: float, age: int) -> None:
         """Create and persist a new Boxer instance.
 
@@ -109,6 +114,9 @@ class Boxers(db.Model):
             logger.error(f"Database error during creation: {e}")
 
     @classmethod
+
+     #Implement 
+
     def get_boxer_by_id(cls, boxer_id: int) -> "Boxers":
         """Retrieve a boxer by ID.
 
@@ -127,6 +135,10 @@ class Boxers(db.Model):
         pass
 
     @classmethod
+
+     #Implement 
+
+     
     def get_boxer_by_name(cls, name: str) -> "Boxers":
         """Retrieve a boxer by name.
 
