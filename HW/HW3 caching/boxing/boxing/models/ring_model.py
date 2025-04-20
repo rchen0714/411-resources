@@ -152,16 +152,16 @@ class RingModel:
         return boxers
 
     def _get_boxer_from_cache_or_db(self, boxer_id: int) -> Boxers:
-    now = time.time()
-    if boxer_id in self._boxer_cache and self._ttl.get(boxer_id, 0) > now:
-        logger.debug(f"Boxer ID {boxer_id} retrieved from cache")
-        return self._boxer_cache[boxer_id]
+        now = time.time()
+        if boxer_id in self._boxer_cache and self._ttl.get(boxer_id, 0) > now:
+            logger.debug(f"Boxer ID {boxer_id} retrieved from cache")
+            return self._boxer_cache[boxer_id]
 
-    boxer = Boxers.get_boxer_by_id(boxer_id)
-    logger.info(f"Boxer ID {boxer_id} loaded from DB")
-    self._boxer_cache[boxer_id] = boxer
-    self._ttl[boxer_id] = now + self.ttl_seconds
-    return boxer
+        boxer = Boxers.get_boxer_by_id(boxer_id)
+        logger.info(f"Boxer ID {boxer_id} loaded from DB")
+        self._boxer_cache[boxer_id] = boxer
+        self._ttl[boxer_id] = now + self.ttl_seconds
+        return boxer
 
 
     def get_fighting_skill(self, boxer: Boxers) -> float:

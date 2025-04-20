@@ -1,7 +1,7 @@
 import logging
 from typing import List
 
-from sqlalchemy.exc import IntegrityError
+from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 
 from boxing.db import db
 from boxing.utils.logger import configure_logger
@@ -93,32 +93,12 @@ class Boxers(db.Model):
 
         if weight < 125:
             raise ValueError("Weight must be at least 125 pounds.")
-
         if weight <= 135:
             return "Lightweight"
         elif weight <= 160:
             return "Middleweight"
         else:
             return "Heavyweight"
-        
-
-    def validate(self) -> None:
-        """Validates the song instance before committing to the database.
-
-        Raises:
-            ValueError: If any required fields are invalid.
-        """
-        if not self.artist or not isinstance(self.artist, str):
-            raise ValueError("Artist must be a non-empty string.")
-        if not self.title or not isinstance(self.title, str):
-            raise ValueError("Title must be a non-empty string.")
-        if not isinstance(self.year, int) or self.year <= 1900:
-            raise ValueError("Year must be an integer greater than 1900.")
-        if not self.genre or not isinstance(self.genre, str):
-            raise ValueError("Genre must be a non-empty string.")
-        if not isinstance(self.duration, int) or self.duration <= 0:
-            raise ValueError("Duration must be a positive integer.")
-
 
     @classmethod
 
@@ -153,7 +133,7 @@ class Boxers(db.Model):
         logger.info(f"Creating boxer: {name}, {weight=} {height=} {reach=} {age=}")
 
         try:
-            boxer = Boxer(
+            boxer = Boxers(
                 name=name.strip(),
                 weight=weight,
                 height=height,
@@ -161,14 +141,13 @@ class Boxers(db.Model):
                 age=age
             )
 
-            boxer.validate()
-        
+
         except ValueError as e:
             logger.warning(f"Validation failed: {e}")
             raise
 
         try:
-            existing = Boxer.query.filter_by(name=name.strip()).first()
+            existing = Boxers.query.filter_by(name=name.strip()).first()
             if existing:
                 logger.error(f"Boxer already exists: {name}")
                 raise ValueError(f"Boxer with name '{name}' already exists.")
@@ -210,9 +189,11 @@ class Boxers(db.Model):
         logger.info(f" Trying to retrieve boxer with ID: {boxer_id}")
         try: 
             boxer = cls.query.get(boxer_id)
-            if boxer is None:
+            if not boxer:
                 logger.info(f"Boxer with ID {boxer_id} not found.")
                 raise ValueError(f"Boxer with ID {boxer_id} not found.")
+            
+            logger.info(f"Successfully retrieved boxer: {boxer.name}")
             return boxer
         
         except SQLAlchemyError as e:
@@ -259,7 +240,7 @@ class Boxers(db.Model):
         """
         try: 
             boxer = cls.get_boxer_by_id(boxer_id)
-            if boxer is None:
+            if not boxer:
                 logger.info(f"Boxer with ID {boxer_id} not found.")
                 raise ValueError(f"Boxer with ID {boxer_id} not found.")
             db.session.delete(boxer)
